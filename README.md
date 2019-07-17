@@ -1,0 +1,2 @@
+# QSnek
+SNEK with AI
