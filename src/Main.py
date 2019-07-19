@@ -1,7 +1,7 @@
 from tkinter import *
-from tkinter import Tk
-import time
 import random
+from Snek import *
+import time
 
 
 class MainWindow(Tk):
@@ -13,63 +13,45 @@ class MainWindow(Tk):
 
         self.square_size = 20
 
-        self.snek = None
-        self.apple = None
-
-        '''create_square requires 4 coordinates for the corners of the square'''
-
-        self.snek_x1 = 0
-        self.snek_x2 = 0
-        self.snek_y1 = 0
-        self.snek_y2 = 0
-
         '''Same goes for the apple'''
         self.apple_x1 = 0
         self.apple_x2 = 0
         self.apple_y1 = 0
         self.apple_y2 = 0
 
-        '''Vector for Snek'''
-        self.snek_move_x = 0
-        self.snek_move_y = 0
-
+        self.apple_cnt = 0
+        self.old_apple_cnt = 0
         self.snek_array = []
 
         self.m = PanedWindow(master=self.master, orient=VERTICAL, height=self.WIDTH, width=self.HEIGHT, background="blue",
-                             borderwidth=20)
+                             borderwidth=1)
         self.m.pack(expand=0)
 
         self.w = Canvas(self.m, width=1200, height=1000)
         self.w.pack()
+
+        label = Label(self, text=str(self.apple_cnt))
+        label.pack()
+        self.w.create_window(10, 10, window=label)
+
+        self.snek = None
+
+        self.apple = None
+
         self.m.add(self.w)
 
         self.create_game()
 
     def create_game(self):
         self.create_board()
-        self.create_snek()
-        self.create_apple()
         self.loop()
 
-    def create_snek(self):
 
-        snek_x = 1
-        snek_y = 1
-
-        self.snek_x1 = snek_x * self.square_size
-        self.snek_x2 = self.snek_x1 + self.square_size
-        self.snek_y1 = snek_y * self.square_size
-        self.snek_y2 = self.snek_y1 + self.square_size
-
-        self.snek = self.w.create_rectangle(self.snek_x1, self.snek_y1, self.snek_x2,
-                                self.snek_y2, fill="black")
-        self.snek_array.append(self.snek)
 
     def create_apple(self):
 
-        apple_x = random.randint(0, (self.WIDTH / self.square_size)-2)
-        apple_y = random.randint(0, (self.HEIGHT / self.square_size)-2)
-
+        apple_x = random.randint(1, (self.WIDTH / self.square_size)-4)
+        apple_y = random.randint(1, (self.HEIGHT / self.square_size)-4)
 
         self.apple_x1 = apple_x * self.square_size
         self.apple_x2 = self.apple_x1 + self.square_size
@@ -80,68 +62,86 @@ class MainWindow(Tk):
                                 self.apple_y2, fill="red")
 
     def move(self, e):
-        if e.char == "d" or e.char == " ":
-            self.snek_move_x = 1 * self.square_size
-            self.snek_move_y = 0
-        if e.char == "a":
-            self.snek_move_x = -1 * self.square_size
-            self.snek_move_y = 0
-        if e.char == "w":
-            self.snek_move_y = -1 * self.square_size
-            self.snek_move_x = 0
-        if e.char == "s":
-            self.snek_move_y = 1 * self.square_size
-            self.snek_move_x = 0
+        for i in range(len(self.snek_array)):
+            self.snek_array[i].set_move_snek(e)
 
     def loss(self):
-        self.w.coords(self.snek, 0, 0, self.square_size, self.square_size)
-        self.snek_move_x = 0
-        self.snek_move_y = 0
+        self.snek.set_snek_pos(0, 0)
+        self.snek.set_snek_vector(0, 0)
+        self.apple_cnt = 0
 
     def check_loss(self):
-        if self.w.coords(self.snek)[0] >= self.WIDTH or self.w.coords(self.snek)[0]<0 or self.w.coords(self.snek)[1] >= \
-                self.WIDTH or self.w.coords(self.snek)[1] < 0:
+        '''Collision with left und upper bound'''
+        if self.snek.get_snek_pos()[0] < 0 or self.snek.get_snek_pos()[1] < 0:
             self.loss()
+        '''Collision with right and lower bound'''
+        if self.snek.get_snek_pos()[0] > self.WIDTH or self.snek.get_snek_pos()[1] > self.HEIGHT:
+            self.loss()
+        #for i in range(len(self.snek_array)):
+           # if self.snek.get_snek_pos()[0] == self.snek_array[i].get_snek_pos()[0] \
+               #     and self.snek.get_snek_pos()[1] == self.snek_array[i].get_snek_pos()[1] and len(self.snek_array) > 1:
+              #  self.loss()
+
 
     def check_collide(self):
-        if self.w.coords(self.apple) == self.w.coords(self.snek):
+        if self.w.coords(self.apple) == self.snek.get_snek_pos():
+            self.add_snek_tale()
+            self.old_apple_cnt = self.apple_cnt
+            self.apple_cnt += 1
             self.w.itemconfig(self.apple, fill="black")
-            self.snek_array.append(self.apple)
             self.w.delete(self.apple)
             self.create_apple()
-           # self.add_snek_tale()
+
+
 
     def add_snek_tale(self):
+        snek_tale = Snek((self.snek.get_snek_pos()[0] - self.snek.get_snek_move()[0]) / self.square_size + 1,\
+                         (self.snek.get_snek_pos()[1] - self.snek.get_snek_move()[1]) / self.square_size + 1,\
+                         self.square_size, self.w)
+        self.snek_array.append(snek_tale)
 
-        if self.snek_move_x == 0 and self.snek_move_y == 1:
 
-            x1 = self.w.coords(self.snek)[1] - self.square_size
-            y1 = self.w.coords(self.snek)[3] - self.square_size
+    def update_label(self):
+        if self.old_apple_cnt != self.apple_cnt:
+            label = Label(self, text=str(self.apple_cnt))
+            label.pack()
+            self.w.create_window(10, 10, window=label)
 
-            x2 = self.w.coords(self.snek)[2] - self.square_size
-            y2 = self.w.coords(self.snek)[3] - self.square_size
+    def update_snek_tale(self):
+        for i in range(1, len(self.snek_array)):
+            if self.snek_array[i].get_snek_pos()[0] == self.snek.last_x and self.snek_array[i].get_snek_pos()[1] == self.snek.last_y:
+                self.snek_array[i].set_snek_vector(self.snek_array[i-1].last_vx, self.snek_array[i - 1].last_vy)
+                self.snek_array[i].snek_move()
 
-        self.w.create_rectangle(x1, y1, x2, y2, fill="black")
     def loop(self):
-        self.w.coords(self.snek, 10,20, 10 ,20)
-        print("x: {}    y: {}".format(self.w.coords(self.snek)[2], self.w.coords(self.snek)[3]))
-        self.mainloop()
-        #while 1:
-        '''  self.bind("<KeyPress>", self.move)
-            self.w.move(self.snek, self.snek_move_x, self.snek_move_y)
+        while 1:
+            self.bind("<KeyPress>", self.move)
+            self.snek.snek_move()
+            self.update_snek_tale()
             self.check_loss()
             self.check_collide()
-'''
-           # self.update()
-            #time.sleep(0.05)
+            self.update_label()
+
+            #self.w.delete(self.apple)
+            #self.create_apple()
+
+            self.update()
+            time.sleep(0.1)
 
     def create_board(self):
+        self.snek = Snek(1, 1, self.square_size, self.w)
+        self.create_apple()
+        self.snek_array.append(self.snek)
+
         for x in range(self.WIDTH):
             if x % self.square_size == 0:
-                self.w.create_line(x,0,x,self.HEIGHT, fill="black", width=1)
+                self.w.create_line(x, 0, x, self.HEIGHT, fill="black", width=1)
         for y in range(self.HEIGHT):
             if y % self.square_size == 0:
-                self.w.create_line(0,y,self.WIDTH, y, fill="black", width=1)
+                self.w.create_line(0, y, self.WIDTH, y, fill="black", width=1)
+
+
+
 
 
 if __name__ == "__main__":
