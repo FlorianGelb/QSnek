@@ -31,18 +31,27 @@ class Snek():
     def set_move_snek(self, e):
         self.last_x = self.get_snek_pos()[0]
         self.last_y = self.get_snek_pos()[1]
-        if e.char == "d" or e.char == " ":
+        try:
+            e = e.char
+        except Exception as ex:
+            print("Just DEBUG nothing to worry")
+
+
+        if e == "d" or e == " ":
             self.snek_move_x = 1 * self.square_size
             self.snek_move_y = 0
-        if e.char == "a":
+        if e == "a":
             self.snek_move_x = -1 * self.square_size
             self.snek_move_y = 0
-        if e.char == "w":
+        if e == "w":
             self.snek_move_y = -1 * self.square_size
             self.snek_move_x = 0
-        if e.char == "s":
+        if e == "s":
             self.snek_move_y = 1 * self.square_size
             self.snek_move_x = 0
+
+
+
 
     def snek_move(self):
         self.last_vx = self.snek_move_x

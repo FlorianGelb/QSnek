@@ -62,16 +62,36 @@ class MainWindow(Tk):
                                 self.apple_y2, fill="red")
 
     def move(self, e):
+        try:
+            e = e.char()
+        except Exception as ex:
+            pass
+
+        if len(self.snek_array) > 0:
+            if self.snek.snek_move_x == 20 and e == "a":
+                self.loss()
+            elif self.snek.snek_move_x == -20 and e == "d":
+                self.loss()
+            elif self.snek.snek_move_y == -20 and e == "s":
+                self.loss()
+            elif self.snek.snek_move_y == 20 and e == "w":
+                self.loss()
         self.snek.set_move_snek(e)
 
     def loss(self):
-        self.snek.set_snek_pos(0, 0)
+        self.snek.set_snek_pos(19, 19)
         self.snek.set_snek_vector(0, 0)
         self.apple_cnt = 0
 
-        for i in range(1, len(self.snek_array)):
-            self.snek_array[1].snek_destroyer()
-            del self.snek_array[1]
+        for i in range(len(self.snek_array)):
+            self.snek_array[0].snek_destroyer()
+            del self.snek_array[0]
+
+        label = Label(self, text=str(self.apple_cnt))
+        label.pack()
+        self.w.create_window(10, 10, window=label)
+
+
 
     def check_loss(self):
         '''Collision with left und upper bound'''
@@ -81,7 +101,7 @@ class MainWindow(Tk):
         if self.snek.get_snek_pos()[0] > self.WIDTH or self.snek.get_snek_pos()[1] > self.HEIGHT:
             self.loss()
 
-        for i in range(len(self.snek_array)):
+        for i in range(len(self.snek_array) -1):
             if self.snek.get_snek_pos()[0] == self.snek_array[i].get_snek_pos()[0] \
                     and self.snek.get_snek_pos()[1] == self.snek_array[i].get_snek_pos()[1]:
                 self.loss()
@@ -128,7 +148,7 @@ class MainWindow(Tk):
             time.sleep(0.1)
 
     def create_board(self):
-        self.snek = Snek(1, 1, self.square_size, self.w)
+        self.snek = Snek(19, 19, self.square_size, self.w)
         self.create_apple()
 
         for x in range(self.WIDTH):
@@ -137,7 +157,6 @@ class MainWindow(Tk):
         for y in range(self.HEIGHT):
             if y % self.square_size == 0:
                 self.w.create_line(0, y, self.WIDTH, y, fill="black", width=1)
-
 
 
 
