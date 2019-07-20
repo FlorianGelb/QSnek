@@ -40,6 +40,10 @@ class MainWindow(Tk):
 
         self.m.add(self.w)
 
+        self.label = Label(text=str(self.apple_cnt))
+        label.pack()
+        self.w.create_window(10, 10, window=label)
+
         self.create_game()
 
     def create_game(self):
@@ -126,9 +130,7 @@ class MainWindow(Tk):
 
     def update_label(self):
         if self.old_apple_cnt != self.apple_cnt:
-            label = Label(self, text=str(self.apple_cnt))
-            label.pack()
-            self.w.create_window(10, 10, window=label)
+            self.label.config(text=str(self.apple_cnt))
 
     def update_snek_tale(self):
         if len(self.snek_array) > self.apple_cnt:
@@ -157,8 +159,6 @@ class MainWindow(Tk):
         for y in range(self.HEIGHT):
             if y % self.square_size == 0:
                 self.w.create_line(0, y, self.WIDTH, y, fill="black", width=1)
-
-
 
 
 if __name__ == "__main__":

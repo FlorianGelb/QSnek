@@ -34,7 +34,7 @@ class Snek():
         try:
             e = e.char
         except Exception as ex:
-            print("Just DEBUG nothing to worry")
+            pass
 
 
         if e == "d" or e == " ":
