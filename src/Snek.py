@@ -68,3 +68,6 @@ class Snek():
 
         self.snek_move_x = vx
         self.snek_move_y = vy
+
+    def snek_destroyer(self):
+        self.w.delete(self.snek)
