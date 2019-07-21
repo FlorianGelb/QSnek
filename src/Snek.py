@@ -1,4 +1,4 @@
-class Snek():
+class Snek:
 
     def __init__(self, x, y, square_size, w):
         self.snek_x = x - 1

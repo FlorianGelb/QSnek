@@ -3,11 +3,13 @@ import random
 import time
 from tkinter import *
 from Snek import Snek
+import numpy as np
+from Label import Label
 
 class QSnekAI(MainWindow, Tk):
     def __init__(self):
-        self.GAMMA = 0.9
-        self.V = 38 * [[0] * 38]
+        self.GAMMA = 0.5
+        self.V = np.zeros((38,38))
         super().__init__()
 
     def gen_e(self):
@@ -29,7 +31,7 @@ class QSnekAI(MainWindow, Tk):
             return -10
 
         if x > 38 or x < 0 or y > 38 or y < 0:
-            return -10
+            return -11
 
         return 0
 
@@ -45,23 +47,28 @@ class QSnekAI(MainWindow, Tk):
     def eval(self):
         for x in range(int(self.WIDTH / self.square_size - 2)):
             for y in range(int(self.HEIGHT / self.square_size - 2)):
-                e = self.reward_in(x, y) + self.GAMMA * self.getV(x,y)
-                if e != 0:
-                    print("{} evald for X{} Y{}".format(e, x, y))
-                self.setV(x, y, e)
+                for i in range (len(self.moves)):
+                    e = self.reward_in(x, y) + self.GAMMA * self.getV(x + self.moves[i][0],y + self.moves[i][1])
+                    if e < 5:
+                        e = 0
+                    if e != 0:
+                        print("{} evald for X{} Y{}".format(e, x, y))
+                        self.V[x][y] = e
+                        self.update_label()
 
 
     def update_label(self):
-        for x in range(38):
-            for y in range(38):
-                self.w.create_text(38 * x, 38 * y , text=str(self.V[x][y]))
+        for x in range(int(self.WIDTH)):
+            for y in range(int(self.HEIGHT)):
+                if x % self.square_size == 0 and y % self.square_size == 0:
+                    Label(x + 0.5 * self.square_size, y + 0.5 * self.square_size, self.w, self.getV(int(x / self.square_size -2), int(y / self.square_size -2)))
 
     def move(self, e):
-        moves = [[20, 0], [-20, 0], [0, 20], [0, -20]]
+        self.moves = [[20, 0], [-20, 0], [0, 20], [0, -20]]
         v2 = 0
         n = 0
-        for x in range(len(moves)):
-            v = self.getV(int(self.snek.get_snek_pos()[0] + moves[x][0]), int(self.snek.get_snek_pos()[1] + moves[x][1]))
+        for x in range(len(self.moves)):
+            v = self.getV(int(self.snek.get_snek_pos()[0] + self.moves[x][0]), int(self.snek.get_snek_pos()[1] + self.moves[x][1]))
 
             if v > v2:
                 n = x
@@ -98,14 +105,29 @@ class QSnekAI(MainWindow, Tk):
     def loop(self):
         while 1:
             self.move(self.gen_e())
+            self.eval()
             self.snek.snek_move()
             self.check_collide()
             self.add_snek_tale()
             self.update_snek_tale()
             self.check_loss()
             self.update()
-            self.eval()
-            time.sleep(0.1)
+            time.sleep(0.0001)
+
+
+    def loss(self):
+        self.snek.set_snek_pos(19, 19)
+        self.snek.set_snek_vector(0, 0)
+        self.apple_cnt = 0
+
+        for i in range(len(self.snek_array)):
+            self.snek_array[0].snek_destroyer()
+            del self.snek_array[0]
+
+        label = Label(self, text=str(self.apple_cnt))
+        label.pack()
+        self.w.create_window(10, 10, window=label)
+        self.V = 38 * [[0] * 38]
 
     def create_board(self):
         self.snek = Snek(19, 19, self.square_size, self.w)
@@ -117,6 +139,7 @@ class QSnekAI(MainWindow, Tk):
         for y in range(self.HEIGHT):
             if y % self.square_size == 0:
                 self.w.create_line(0, y, self.WIDTH, y, fill="black", width=1)
+
 
 
 if __name__ == '__main__':
