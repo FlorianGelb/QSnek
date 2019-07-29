@@ -8,3 +8,6 @@ class Label:
 
     def create_label(self):
         self.label = self.w.create_text(self.x, self.y, text=self.t)
+
+    def destroy_label(self):
+        self.w.delete(self.label)
